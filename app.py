@@ -10,11 +10,39 @@ from dash import dcc
 from dash import html
 import chart_studio.tools as tls
 import chart_studio.plotly as py
+import config
 
 #chart studio credentials
 tls.set_credentials_file(username='azurscd', api_key='K7ljyIXPB3XU6Lyk9QUp')
 
+class ReverseProxied(object):
+    #Class to dynamically adapt Flask converted url of static files (/sttaic/js...) + templates html href links according to the url app path after the hostname (set in cnfig.py)
+    def __init__(self, app, script_name=None, scheme=None, server=None):
+        self.app = app
+        self.script_name = script_name
+        self.scheme = scheme
+        self.server = server
 
+    def __call__(self, environ, start_response):
+        script_name = environ.get('HTTP_X_SCRIPT_NAME', '') or self.script_name
+        if script_name:
+            environ['SCRIPT_NAME'] = script_name
+            path_info = environ['PATH_INFO']
+            if path_info.startswith(script_name):
+                environ['PATH_INFO'] = path_info[len(script_name):]
+        scheme = environ.get('HTTP_X_SCHEME', '') or self.scheme
+        if scheme:
+            environ['wsgi.url_scheme'] = scheme
+        server = environ.get('HTTP_X_FORWARDED_SERVER', '') or self.server
+        if server:
+            environ['HTTP_HOST'] = server
+        return self.app(environ, start_response)
+
+#config variables
+port = config.PORT
+host = config.HOST
+url_subpath = config.URL_SUBPATH
+		
 # get relative data folder
 PATH = pathlib.Path(__file__).parent
 DATA_PATH = PATH.joinpath("data").resolve()
@@ -25,8 +53,6 @@ app = dash.Dash(
 )
 app.title = "Baromètre OA UCA"
 server = app.server
-
-
 
 # Load data
 
@@ -251,4 +277,4 @@ def generate_figure(selected_structures):
 
 # Main
 if __name__ == "__main__":
-    app.run_server(host='0.0.0.0')
+    app.run_server(port=port,host=host)
