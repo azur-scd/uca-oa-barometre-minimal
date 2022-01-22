@@ -1,4 +1,5 @@
 #!/usr/local/bin python
+#-*- coding: utf-8 -*-
 import pathlib
 import dash
 import pandas as pd
@@ -139,9 +140,9 @@ app.layout = html.Div(
                                     className="mini_container",
                                 ),
                                 html.Div(
-                                    [html.H6(id="nb_pub_text"), html.P(
+                                    [html.H6(id="nb_publis_text"), html.P(
                                         "Nombre de publications")],
-                                    id="nb_pub",
+                                    id="nb_publis",
                                     className="mini_container",
                                 ),
                                 html.Div(
@@ -180,10 +181,26 @@ app.layout = html.Div(
             ],
             className="row flex-display",
         ),
-        html.Div(
+         html.Div(
             [
+                 html.Div(
+                    [ 
+                    html.P("Choisir un nombre d'éditeurs à afficher :", className="control_label"), 
+                    dcc.Slider(
+                      id='nb_publishers',
+                      min=5,
+                      max=50,
+                      step=5,
+                      value=10,
+                      className="dcc_control",
+                      updatemode = "drag",
+                      marks = {i: "{}".format(i) for i in [5, 10, 15, 20, 25, 30, 35, 40, 45, 50]},
+                           ),                       
+                        ],
+                    className="pretty_container three columns",
+                ),
                 html.Div(
-                    [dcc.Graph(id="rate_by_publisher_graph")],
+                    [dcc.Graph(id="rate_by_publisher_graph",style={"height": "600px"})],
                     className="pretty_container nine columns",
                 )
             ],
@@ -247,10 +264,10 @@ def doi_synthetics_aff(ids):
 
 
 @app.callback(
-    Output("nb_pub_text", "children"),
+    Output("nb_publis_text", "children"),
     [Input("selected_structures", "value")],
 )
-def update_nb_pub_text(selected_structures):
+def update_nb_publis_text(selected_structures):
     dff = doi_synthetics_aff(selected_structures)
     return dff.shape[0]
 
@@ -283,12 +300,13 @@ def update_rate_open_text(selected_structures):
     Output("by_status_graph", "figure"),
     Output("by_type_graph", "figure"),
     [
-        Input("selected_structures", "value")
+        Input("selected_structures", "value"),
+		Input("nb_publishers", "value")
     ],
 )
-def generate_figure(selected_structures):
+def generate_figure(selected_structures,nb_publishers):
     dff = doi_synthetics_aff(selected_structures)
-    return charts.oa_rate_by_publisher(dataframe=dff, publisher_field="publisher_by_doiprefix", n=10), charts.oa_rate(dataframe=dff), charts.oa_rate_by_year(dataframe=dff), charts.oa_by_status(dataframe=dff), charts.oa_rate_by_type(dataframe=dff)
+    return charts.oa_rate_by_publisher(dataframe=dff, publisher_field="publisher_by_doiprefix", n=int(nb_publishers)), charts.oa_rate(dataframe=dff), charts.oa_rate_by_year(dataframe=dff), charts.oa_by_status(dataframe=dff), charts.oa_rate_by_type(dataframe=dff)
 
 
 # Main
