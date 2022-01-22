@@ -79,6 +79,10 @@ body {
   align-items: center;
 }
 
+#footer {
+  align-self: center;
+}
+
 #learn-more-button {
   text-align: center;
   height: 100%;

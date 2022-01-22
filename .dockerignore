@@ -1,0 +1,4 @@
+# Ignore dev folders
+###################
+.devcontainer
+.vscode
